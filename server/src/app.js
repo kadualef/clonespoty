@@ -22,6 +22,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/songs', songRoutes);
 app.use('/api/playlists', playlistRoutes);
 
+const seed = require('./seed');
+app.get('/api/seed', seed);
+
 const PORT = process.env.PORT || 5000;
 
 if (require.main === module) {
