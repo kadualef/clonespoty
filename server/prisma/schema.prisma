@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  playlists Playlist[]
+  history   History[]
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+model Song {
+  id        Int      @id @default(autoincrement())
+  title     String
+  artist    String
+  album     String?
+  duration  Int
+  url       String
+  coverUrl  String?
+  createdAt DateTime @default(now())
+  playlists PlaylistSong[]
+  history   History[]
+}
+
+model Playlist {
+  id        Int      @id @default(autoincrement())
+  name      String
+  userId    Int
+  isPublic  Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id])
+  songs     PlaylistSong[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlaylistSong {
+  id         Int      @id @default(autoincrement())
+  playlistId Int
+  songId     Int
+  playlist   Playlist @relation(fields: [playlistId], references: [id])
+  song       Song     @relation(fields: [songId], references: [id])
+  addedAt    DateTime @default(now())
+
+  @@unique([playlistId, songId])
+}
+
+model History {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  songId    Int
+  playedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  song      Song     @relation(fields: [songId], references: [id])
+}
