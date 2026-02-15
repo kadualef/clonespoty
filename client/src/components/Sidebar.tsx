@@ -1,7 +1,25 @@
+'use client'
+
 import Link from 'next/link'
-import { Home, Search, Library, Plus, Heart, Globe, Music } from 'lucide-react'
+import { Home, Search, Library, Plus, Heart, Globe, Music, LogIn, UserPlus } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function Sidebar() {
+    const router = useRouter()
+    const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+    useEffect(() => {
+        const token = localStorage.getItem('token')
+        setIsLoggedIn(!!token)
+    }, [])
+
+    const handleLogout = () => {
+        localStorage.removeItem('token')
+        setIsLoggedIn(false)
+        router.push('/login')
+    }
+
     return (
         <div className="w-64 bg-black/95 h-full flex flex-col gap-y-2 p-2">
             <div className="bg-spotify-card rounded-lg p-5 flex flex-col gap-y-4">
@@ -55,6 +73,27 @@ export default function Sidebar() {
                             </div>
                         </div>
                     ))}
+                </div>
+
+                {/* Auth Buttons */}
+                <div className="mt-4 pt-4 border-t border-gray-800">
+                    {!isLoggedIn ? (
+                        <div className="flex flex-col gap-y-2">
+                            <Link href="/register" className="w-full py-2 rounded-full text-gray-400 font-bold hover:text-white hover:scale-105 transition text-center border border-gray-600 hover:border-white">
+                                Sign up
+                            </Link>
+                            <Link href="/login" className="w-full bg-white text-black py-2 rounded-full font-bold hover:scale-105 transition text-center">
+                                Log in
+                            </Link>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleLogout}
+                            className="w-full bg-[#1e1e1e] text-white py-2 rounded-full font-bold hover:bg-red-900 transition text-center border border-transparent hover:border-red-500"
+                        >
+                            Log out
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
