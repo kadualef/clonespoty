@@ -16,6 +16,7 @@ export default function LoginPage() {
         try {
             const response = await api.post('/auth/login', { email, password })
             localStorage.setItem('token', response.data.token)
+            window.dispatchEvent(new Event('login-state-change'))
             router.push('/')
         } catch (err: any) {
             setError(err.response?.data?.error || 'Login failed')
