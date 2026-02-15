@@ -1,44 +1,61 @@
 import Link from 'next/link'
-import { Home, Search, Library, Plus, Heart } from 'lucide-react'
+import { Home, Search, Library, Plus, Heart, Globe, Music } from 'lucide-react'
 
 export default function Sidebar() {
     return (
-        <div className="w-64 bg-black h-full p-6 flex flex-col gap-y-4">
-            <div className="flex flex-col gap-y-4">
-                <Link href="/" className="flex items-center gap-x-4 text-gray-400 hover:text-white transition">
+        <div className="w-64 bg-black/95 h-full flex flex-col gap-y-2 p-2">
+            <div className="bg-spotify-card rounded-lg p-5 flex flex-col gap-y-4">
+                <Link href="/" className="flex items-center gap-x-4 text-gray-400 hover:text-white transition duration-300">
                     <Home size={24} />
-                    <span className="font-semibold">Home</span>
+                    <span className="font-bold">Home</span>
                 </Link>
-                <Link href="/search" className="flex items-center gap-x-4 text-gray-400 hover:text-white transition">
+                <Link href="/search" className="flex items-center gap-x-4 text-gray-400 hover:text-white transition duration-300">
                     <Search size={24} />
-                    <span className="font-semibold">Search</span>
-                </Link>
-                <Link href="/library" className="flex items-center gap-x-4 text-gray-400 hover:text-white transition">
-                    <Library size={24} />
-                    <span className="font-semibold">Your Library</span>
+                    <span className="font-bold">Search</span>
                 </Link>
             </div>
 
-            <div className="mt-6 flex flex-col gap-y-4">
-                <button className="flex items-center gap-x-4 text-gray-400 hover:text-white transition group">
-                    <div className="p-1 bg-gray-400 group-hover:bg-white rounded-sm">
-                        <Plus size={16} className="text-black" />
+            <div className="flex-1 bg-spotify-card rounded-lg p-4 flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-x-2 text-gray-400 hover:text-white transition cursor-pointer">
+                        <Library size={24} />
+                        <span className="font-bold">Your Library</span>
                     </div>
-                    <span className="font-semibold">Create Playlist</span>
-                </button>
-                <Link href="/liked" className="flex items-center gap-x-4 text-gray-400 hover:text-white transition group">
-                    <div className="p-1 bg-gradient-to-br from-indigo-700 to-white opacity-70 group-hover:opacity-100 rounded-sm">
-                        <Heart size={16} className="text-white fill-white" />
-                    </div>
-                    <span className="font-semibold">Liked Songs</span>
-                </Link>
-            </div>
+                    <Plus size={20} className="text-gray-400 hover:text-white cursor-pointer transition" />
+                </div>
 
-            <div className="mt-4 border-t border-gray-800 pt-4 overflow-y-auto flex-1">
-                {/* Playlist list will go here */}
-                <p className="text-gray-400 text-sm hover:text-white cursor-pointer py-1">Chill Vibes</p>
-                <p className="text-gray-400 text-sm hover:text-white cursor-pointer py-1">Workout Mix</p>
-                <p className="text-gray-400 text-sm hover:text-white cursor-pointer py-1">Top Hits 2024</p>
+                <div className="flex gap-x-2 mb-4">
+                    <span className="px-3 py-1 bg-[#232323] rounded-full text-sm font-semibold text-white hover:bg-[#2a2a2a] cursor-pointer transition">Playlists</span>
+                    <span className="px-3 py-1 bg-[#232323] rounded-full text-sm font-semibold text-white hover:bg-[#2a2a2a] cursor-pointer transition">Artists</span>
+                </div>
+
+                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                    <Link href="/liked" className="flex items-center gap-x-3 p-2 rounded-md hover:bg-white/5 transition cursor-pointer group">
+                        <div className="h-12 w-12 bg-gradient-to-br from-indigo-700 to-indigo-300 rounded-md flex items-center justify-center shadow-lg group-hover:scale-105 transition">
+                            <Heart size={20} className="text-white fill-white" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-white">Liked Songs</span>
+                            <span className="text-sm text-gray-400 flex items-center gap-x-1">
+                                <span className="text-green-500"><Music size={12} className="inline mr-1" /></span>
+                                34 songs
+                            </span>
+                        </div>
+                    </Link>
+
+                    {/* Simulated Playlists */}
+                    {['Chill Vibes', 'Workout Mix', 'Top Hits 2024', 'Focus Flow', 'Late Night Jazz'].map((playlist, i) => (
+                        <div key={i} className="flex items-center gap-x-3 p-2 rounded-md hover:bg-white/5 transition cursor-pointer group">
+                            <div className="h-12 w-12 bg-[#282828] rounded-md flex items-center justify-center group-hover:bg-[#333] transition">
+                                <Music size={20} className="text-gray-400" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-white truncate">{playlist}</span>
+                                <span className="text-sm text-gray-400">Playlist • User</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     )
