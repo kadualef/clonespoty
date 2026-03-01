@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 
 interface Song {
-    id: number;
+    id: string;
     title: string;
     artist: string;
-    url: string;
+    audioUrl: string;
     coverUrl?: string;
 }
 

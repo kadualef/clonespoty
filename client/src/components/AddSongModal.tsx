@@ -10,7 +10,7 @@ interface AddSongModalProps {
 }
 
 export default function AddSongModal({ isOpen, onClose }: AddSongModalProps) {
-    const [url, setUrl] = useState('')
+    const [audioFile, setAudioFile] = useState<File | null>(null)
     const [title, setTitle] = useState('')
     const [artist, setArtist] = useState('')
     const [coverUrl, setCoverUrl] = useState('')
@@ -27,25 +27,32 @@ export default function AddSongModal({ isOpen, onClose }: AddSongModalProps) {
         setSuccess(false)
 
         try {
-            await api.post('/songs', {
-                title,
-                artist,
-                url,
-                coverUrl
+            if (!audioFile) {
+                throw new Error('Selecione um arquivo MP3')
+            }
+
+            const formData = new FormData()
+            formData.append('title', title)
+            formData.append('artist', artist)
+            formData.append('coverUrl', coverUrl)
+            formData.append('audio', audioFile)
+
+            await api.post('/songs', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
             })
+
             setSuccess(true)
             setTimeout(() => {
                 onClose()
                 setSuccess(false)
-                setUrl('')
+                setAudioFile(null)
                 setTitle('')
                 setArtist('')
                 setCoverUrl('')
-                // Ideally prompt a refresh of the song list
                 window.location.reload()
-            }, 1500)
+            }, 1200)
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Failed to add song')
+            setError(err.response?.data?.error || err.message || 'Failed to add song')
         } finally {
             setIsLoading(false)
         }
@@ -73,14 +80,13 @@ export default function AddSongModal({ isOpen, onClose }: AddSongModalProps) {
                 ) : (
                     <form onSubmit={handleSubmit} className="flex flex-col gap-y-4">
                         <div>
-                            <label className="text-sm font-bold text-gray-300 block mb-1">Song URL (MP3)</label>
+                            <label className="text-sm font-bold text-gray-300 block mb-1">MP3 File</label>
                             <input
-                                type="url"
+                                type="file"
+                                accept="audio/mpeg,.mp3"
                                 required
-                                placeholder="https://example.com/song.mp3"
-                                value={url}
-                                onChange={(e) => setUrl(e.target.value)}
-                                className="w-full bg-[#121212] border border-gray-600 rounded p-3 text-white focus:border-green-500 focus:outline-none"
+                                onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+                                className="w-full bg-[#121212] border border-gray-600 rounded p-3 text-white"
                             />
                         </div>
                         <div>
@@ -88,10 +94,9 @@ export default function AddSongModal({ isOpen, onClose }: AddSongModalProps) {
                             <input
                                 type="text"
                                 required
-                                placeholder="Song Title"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="w-full bg-[#121212] border border-gray-600 rounded p-3 text-white focus:border-green-500 focus:outline-none"
+                                className="w-full bg-[#121212] border border-gray-600 rounded p-3 text-white"
                             />
                         </div>
                         <div>
@@ -99,30 +104,24 @@ export default function AddSongModal({ isOpen, onClose }: AddSongModalProps) {
                             <input
                                 type="text"
                                 required
-                                placeholder="Artist Name"
                                 value={artist}
                                 onChange={(e) => setArtist(e.target.value)}
-                                className="w-full bg-[#121212] border border-gray-600 rounded p-3 text-white focus:border-green-500 focus:outline-none"
+                                className="w-full bg-[#121212] border border-gray-600 rounded p-3 text-white"
                             />
                         </div>
                         <div>
                             <label className="text-sm font-bold text-gray-300 block mb-1">Cover Image URL (Optional)</label>
                             <input
                                 type="url"
-                                placeholder="https://example.com/image.jpg"
                                 value={coverUrl}
                                 onChange={(e) => setCoverUrl(e.target.value)}
-                                className="w-full bg-[#121212] border border-gray-600 rounded p-3 text-white focus:border-green-500 focus:outline-none"
+                                className="w-full bg-[#121212] border border-gray-600 rounded p-3 text-white"
                             />
                         </div>
 
                         {error && <p className="text-red-500 text-sm">{error}</p>}
 
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="bg-green-500 text-black font-bold rounded-full py-3 mt-2 hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
+                        <button type="submit" disabled={isLoading} className="bg-green-500 text-black font-bold rounded-full py-3 mt-2">
                             {isLoading ? 'Adding...' : 'Add Song'}
                         </button>
                     </form>

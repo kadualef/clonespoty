@@ -7,12 +7,11 @@ import api from '@/lib/api'
 import usePlayerStore from '@/store/usePlayerStore'
 
 interface Song {
-    id: number;
+    id: string;
     title: string;
     artist: string;
-    url: string;
+    audioUrl: string;
     coverUrl?: string;
-    duration: number;
 }
 
 export default function Home() {

@@ -8,15 +8,15 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        String     @id @default(uuid())
+  email     String     @unique
   password  String
-  name      String
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  name      String?
+  role      Role       @default(CUSTOMER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  likes     Like[]
   playlists Playlist[]
-  history   History[]
 }
 
 enum Role {
@@ -25,45 +25,43 @@ enum Role {
 }
 
 model Song {
-  id        Int      @id @default(autoincrement())
-  title     String
-  artist    String
-  album     String?
-  duration  Int
-  url       String
-  coverUrl  String?
-  createdAt DateTime @default(now())
-  playlists PlaylistSong[]
-  history   History[]
+  id            String         @id @default(uuid())
+  title         String
+  artist        String
+  audioUrl      String
+  coverUrl      String
+  createdAt     DateTime       @default(now())
+  likes         Like[]
+  playlistSongs PlaylistSong[]
+}
+
+model Like {
+  id     String @id @default(uuid())
+  userId String
+  songId String
+
+  user User @relation(fields: [userId], references: [id])
+  song Song @relation(fields: [songId], references: [id])
+
+  @@unique([userId, songId])
 }
 
 model Playlist {
-  id        Int      @id @default(autoincrement())
-  name      String
-  userId    Int
-  isPublic  Boolean  @default(false)
-  user      User     @relation(fields: [userId], references: [id])
-  songs     PlaylistSong[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id     String @id @default(uuid())
+  name   String
+  userId String
+
+  user  User           @relation(fields: [userId], references: [id])
+  songs PlaylistSong[]
 }
 
 model PlaylistSong {
-  id         Int      @id @default(autoincrement())
-  playlistId Int
-  songId     Int
-  playlist   Playlist @relation(fields: [playlistId], references: [id])
-  song       Song     @relation(fields: [songId], references: [id])
-  addedAt    DateTime @default(now())
+  id         String @id @default(uuid())
+  playlistId String
+  songId     String
+
+  playlist Playlist @relation(fields: [playlistId], references: [id])
+  song     Song     @relation(fields: [songId], references: [id])
 
   @@unique([playlistId, songId])
-}
-
-model History {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  songId    Int
-  playedAt  DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  song      Song     @relation(fields: [songId], references: [id])
 }
