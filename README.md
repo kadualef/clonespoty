@@ -1,87 +1,128 @@
-# Spotify Clone
+# Clonespoty 🎵
 
-A full-stack Spotify clone built with Next.js, Node.js, Express, PostgreSQL, and TailwindCSS.
+Aplicação web full stack inspirada no Spotify, com frontend em **Next.js + TailwindCSS** e backend em **Node.js + Express + Prisma + PostgreSQL**.
 
-## Prerequisites
+## ✅ Recursos implementados
 
-- **Node.js**: v18 or higher
-- **PostgreSQL**: v15 or higher (or use Docker)
-- **Git**
+- Autenticação com JWT (cadastro/login/me)
+- Perfis de usuário com papéis **ADMIN** e **CUSTOMER**
+- Plano **FREE/PREMIUM** simulado
+- Player funcional (play/pause, next/prev, progresso e volume)
+- Histórico de músicas e favoritos
+- Busca de músicas por título/artista
+- Playlists (criar, listar, editar, excluir, adicionar/remover música)
+- Área Admin com métricas e CRUD base de usuários
+- Upload de arquivos (simulado local)
+- Integração Spotify OAuth (URL de autorização, callback e importação de playlists)
+- Estrutura pronta para deploy com Docker Compose para PostgreSQL
 
-## Setup Instructions
+---
 
-### 1. Database Setup (Docker)
+## Estrutura de pastas
 
-If you have Docker installed, simply run:
 ```bash
-docker-compose up -d
+clonespoty/
+├── client/                 # Frontend Next.js
+│   ├── src/app/            # Rotas/pages
+│   ├── src/components/     # Componentes UI
+│   ├── src/lib/            # API client
+│   └── src/store/          # Zustand store (player)
+├── server/                 # Backend Express
+│   ├── prisma/schema.prisma
+│   └── src/
+│       ├── controllers/
+│       ├── routes/
+│       ├── middleware/
+│       ├── services/
+│       └── config/
+├── docker-compose.yml      # Postgres local
+└── README.md
 ```
-This will start a PostgreSQL instance on port 5432.
 
-### 2. Backend Setup
+---
 
-Navigate to the server directory:
-```bash
-cd server
-```
+## Backend (server)
 
-Install dependencies:
-```bash
-npm install
-```
+### Variáveis de ambiente (`server/.env`)
 
-Create a `.env` file in `server/` with the following:
 ```env
 PORT=5000
 DATABASE_URL="postgresql://admin:password@localhost:5432/spotify_db?schema=public"
-JWT_SECRET="your_secret_key"
+JWT_SECRET="super_secret"
+SPOTIFY_CLIENT_ID="..."
+SPOTIFY_CLIENT_SECRET="..."
+SPOTIFY_REDIRECT_URI="http://localhost:5000/api/spotify/callback"
 ```
 
-Run database migrations (initialize schema):
-```bash
-npx prisma generate
-npx prisma db push
-```
+### Rodando backend
 
-Start the server:
 ```bash
+cd server
+npm install
+npm run prisma:generate
+npm run prisma:push
 npm run dev
 ```
-The server will run on `http://localhost:5000`.
 
-### 3. Frontend Setup
+Seeder opcional:
 
-Navigate to the client directory:
+```bash
+curl http://localhost:5000/api/seed
+```
+
+---
+
+## Frontend (client)
+
+### Variáveis de ambiente (`client/.env.local`)
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
+
+### Rodando frontend
+
 ```bash
 cd client
-```
-
-Install dependencies:
-```bash
 npm install
-```
-
-Start the development server:
-```bash
 npm run dev
 ```
-The application will run on `http://localhost:3000`.
 
-## Features
+Acesse: `http://localhost:3000`
 
-- **Authentication**: Sign up and Login with email/password.
-- **Player**: Functional music player with Play/Pause, Next/Prev (simulated visuals).
-- **Home**: Dashboard with "Made for You" and "Liked Songs".
-- **Library**: View songs and playlists.
-- **Admin**: Upload songs (API only for now).
+---
 
-## Tech Stack
+## Banco de dados com Docker
 
-- **Frontend**: Next.js 14, TailwindCSS, Zustand, Lucide-React
-- **Backend**: Node.js, Express, Prisma, PostgreSQL, JWT
+```bash
+docker-compose up -d
+```
 
-## Project Structure
+---
 
-- `client/`: Next.js Frontend
-- `server/`: Express Backend
-- `docker-compose.yml`: Database configuration
+## Principais rotas da API
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `PATCH /api/auth/me/plan`
+- `GET /api/songs?q=`
+- `POST /api/songs/:songId/history`
+- `POST /api/songs/:songId/favorite`
+- `GET /api/playlists`
+- `POST /api/playlists`
+- `PATCH /api/playlists/:id`
+- `DELETE /api/playlists/:id`
+- `GET /api/admin/dashboard` (admin)
+- `GET /api/spotify/auth-url`
+- `GET /api/spotify/callback?code=...`
+- `POST /api/spotify/import-playlists`
+
+---
+
+## Deploy
+
+- Frontend: Vercel / Netlify
+- Backend: Render / Railway / Fly.io
+- DB: Neon / Supabase / RDS
+- Ajuste as variáveis de ambiente em produção e habilite CORS para o domínio do frontend.

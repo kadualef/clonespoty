@@ -1,87 +1,26 @@
-'use client'
+'use client';
+import { Heart, Play } from 'lucide-react';
+import type { Song } from '@/types';
+import usePlayerStore from '@/store/usePlayerStore';
+import api from '@/lib/api';
 
-import { Clock, Play, Heart } from 'lucide-react'
-import usePlayerStore from '@/store/usePlayerStore'
+export default function SongList({ songs }: { songs: Song[] }) {
+  const { setPlaylist } = usePlayerStore();
 
-interface Song {
-    id: number;
-    title: string;
-    artist: string;
-    album?: string;
-    duration: number;
-    url: string;
-    coverUrl?: string;
-}
-
-interface SongListProps {
-    songs: Song[];
-}
-
-export default function SongList({ songs }: SongListProps) {
-    const { setSong, currentSong, isPlaying, setPlaying } = usePlayerStore()
-
-    const handlePlay = (song: Song) => {
-        if (currentSong?.id === song.id) {
-            setPlaying(!isPlaying)
-        } else {
-            setSong(song)
-        }
-    }
-
-    const formatDuration = (seconds: number) => {
-        const min = Math.floor(seconds / 60)
-        const sec = seconds % 60
-        return `${min}:${sec < 10 ? '0' : ''}${sec}`
-    }
-
-    return (
-        <div className="flex flex-col">
-            <div className="grid grid-cols-[16px_4fr_3fr_minmax(120px,1fr)] gap-4 px-4 py-2 border-b border-gray-800 text-gray-400 text-sm sticky top-0 bg-black/90 z-10">
-                <div>#</div>
-                <div>Title</div>
-                <div>Album</div>
-                <div className="flex justify-end"><Clock size={16} /></div>
-            </div>
-
-            <div className="flex flex-col">
-                {songs.map((song, index) => (
-                    <div
-                        key={song.id}
-                        className="grid grid-cols-[16px_4fr_3fr_minmax(120px,1fr)] gap-4 px-4 py-2 text-gray-400 hover:bg-white/10 rounded-md group transition items-center"
-                    >
-                        <div className="flex items-center justify-center relative">
-                            <span className="group-hover:hidden">{index + 1}</span>
-                            <Play
-                                size={16}
-                                className="hidden group-hover:block text-white fill-white cursor-pointer"
-                                onClick={() => handlePlay(song)}
-                            />
-                        </div>
-                        <div className="flex items-center gap-x-4">
-                            {song.coverUrl && (
-                                <div className="h-10 w-10 bg-gray-800 overflow-hidden">
-                                    {/* <img src={song.coverUrl} /> */}
-                                </div>
-                            )}
-                            <div className="flex flex-col">
-                                <span className={`font-semibold truncate ${currentSong?.id === song.id ? 'text-green-500' : 'text-white'}`}>
-                                    {song.title}
-                                </span>
-                                <span className="text-sm group-hover:text-white transition">
-                                    {song.artist}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="text-sm group-hover:text-white transition truncate">
-                            {song.album || 'Single'}
-                        </div>
-                        <div className="flex items-center justify-end gap-x-4">
-                            <Heart size={16} className="opacity-0 group-hover:opacity-100 transition hover:text-green-500 cursor-pointer" />
-                            <span className="text-sm">{formatDuration(song.duration)}</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
+  return (
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {songs.map((song, idx) => (
+        <article key={song.id} className="bg-zinc-900 hover:bg-zinc-800 rounded p-3 transition">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={song.coverUrl || 'https://placehold.co/400x400'} alt={song.title} className="rounded mb-3 aspect-square object-cover" />
+          <h3 className="font-semibold truncate">{song.title}</h3>
+          <p className="text-zinc-400 text-sm truncate">{song.artist}</p>
+          <div className="flex gap-2 mt-3">
+            <button onClick={() => setPlaylist(songs, idx)} className="bg-green-500 text-black px-3 py-1 rounded-full text-sm inline-flex items-center gap-1"><Play size={14} />Tocar</button>
+            <button onClick={() => api.post(`/songs/${song.id}/favorite`).catch(() => null)} className="border border-zinc-700 px-2 rounded"><Heart size={14} /></button>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
 }
