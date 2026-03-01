@@ -1,38 +1,43 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/prisma');
 
-const getAllSongs = async (req, res) => {
-    try {
-        const songs = await prisma.song.findMany();
-        res.send(songs);
-    } catch (error) {
-        res.status(500).send(error);
-    }
+const listSongs = async (req, res) => {
+  const { q } = req.query;
+  const songs = await prisma.song.findMany({
+    where: q
+      ? { OR: [{ title: { contains: q, mode: 'insensitive' } }, { artist: { contains: q, mode: 'insensitive' } }] }
+      : undefined,
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(songs);
 };
 
 const createSong = async (req, res) => {
-    try {
-        const { title, artist, duration, url, coverUrl } = req.body;
+  const { title, artist, album, duration, url, coverUrl } = req.body;
+  if (!title || !artist || !url) return res.status(400).json({ error: 'Campos obrigatórios faltando.' });
 
-        // Validate required fields
-        if (!title || !artist || !url) {
-            return res.status(400).send({ error: 'Title, Artist, and URL are required.' });
-        }
-
-        const song = await prisma.song.create({
-            data: {
-                title,
-                artist,
-                duration: duration || 0, // Default duration if not provided
-                url,
-                coverUrl: coverUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop' // Default cover
-            }
-        });
-        res.status(201).send(song);
-    } catch (error) {
-        console.error("Error creating song:", error);
-        res.status(400).send({ error: error.message });
-    }
+  const song = await prisma.song.create({
+    data: { title, artist, album, duration: Number(duration || 180), url, coverUrl, uploadedBy: req.user?.id },
+  });
+  return res.status(201).json(song);
 };
 
-module.exports = { getAllSongs, createSong };
+const addToHistory = async (req, res) => {
+  const songId = Number(req.params.songId);
+  const history = await prisma.listenHistory.create({ data: { songId, userId: req.user.id } });
+  res.status(201).json(history);
+};
+
+const toggleFavorite = async (req, res) => {
+  const songId = Number(req.params.songId);
+  const exists = await prisma.favorite.findUnique({ where: { userId_songId: { userId: req.user.id, songId } } });
+
+  if (exists) {
+    await prisma.favorite.delete({ where: { userId_songId: { userId: req.user.id, songId } } });
+    return res.json({ favorited: false });
+  }
+
+  await prisma.favorite.create({ data: { userId: req.user.id, songId } });
+  return res.json({ favorited: true });
+};
+
+module.exports = { listSongs, createSong, addToHistory, toggleFavorite };

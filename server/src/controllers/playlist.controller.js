@@ -1,58 +1,63 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/prisma');
+
+const listPlaylists = async (req, res) => {
+  const playlists = await prisma.playlist.findMany({
+    where: { OR: [{ userId: req.user.id }, { isPublic: true }] },
+    include: { songs: { include: { song: true } }, user: { select: { name: true } } },
+    orderBy: { updatedAt: 'desc' },
+  });
+  res.json(playlists);
+};
 
 const createPlaylist = async (req, res) => {
-    try {
-        const { name, isPublic } = req.body;
-        const playlist = await prisma.playlist.create({
-            data: {
-                name,
-                isPublic,
-                userId: req.user.id
-            }
-        });
-        res.status(201).send(playlist);
-    } catch (error) {
-        res.status(400).send(error);
-    }
+  const { name, description, isPublic } = req.body;
+  const playlist = await prisma.playlist.create({
+    data: { name, description, isPublic: Boolean(isPublic), userId: req.user.id },
+  });
+  res.status(201).json(playlist);
 };
 
-const getPlaylists = async (req, res) => {
-    try {
-        const playlists = await prisma.playlist.findMany({
-            where: {
-                OR: [
-                    { isPublic: true },
-                    { userId: req.user.id }
-                ]
-            },
-            include: { user: true }
-        });
-        res.send(playlists);
-    } catch (error) {
-        res.status(500).send(error);
-    }
+const updatePlaylist = async (req, res) => {
+  const id = Number(req.params.id);
+  const playlist = await prisma.playlist.findUnique({ where: { id } });
+  if (!playlist || (playlist.userId !== req.user.id && req.user.role !== 'ADMIN')) {
+    return res.status(403).json({ error: 'Sem permissão.' });
+  }
+
+  const updated = await prisma.playlist.update({ where: { id }, data: req.body });
+  return res.json(updated);
 };
 
-const addSongToPlaylist = async (req, res) => {
-    try {
-        const { playlistId, songId } = req.body;
-        // Check if playlist belongs to user
-        const playlist = await prisma.playlist.findUnique({ where: { id: parseInt(playlistId) } });
-        if (!playlist || playlist.userId !== req.user.id) {
-            return res.status(403).send({ error: 'Cannot modify this playlist' });
-        }
+const deletePlaylist = async (req, res) => {
+  const id = Number(req.params.id);
+  const playlist = await prisma.playlist.findUnique({ where: { id } });
+  if (!playlist || (playlist.userId !== req.user.id && req.user.role !== 'ADMIN')) {
+    return res.status(403).json({ error: 'Sem permissão.' });
+  }
 
-        const playlistSong = await prisma.playlistSong.create({
-            data: {
-                playlistId: parseInt(playlistId),
-                songId: parseInt(songId)
-            }
-        });
-        res.status(201).send(playlistSong);
-    } catch (error) {
-        res.status(400).send(error);
-    }
+  await prisma.playlist.delete({ where: { id } });
+  return res.status(204).send();
 };
 
-module.exports = { createPlaylist, getPlaylists, addSongToPlaylist };
+const addSong = async (req, res) => {
+  const id = Number(req.params.id);
+  const { songId } = req.body;
+
+  const playlist = await prisma.playlist.findUnique({ where: { id } });
+  if (!playlist || (playlist.userId !== req.user.id && req.user.role !== 'ADMIN')) {
+    return res.status(403).json({ error: 'Sem permissão.' });
+  }
+
+  const created = await prisma.playlistSong.create({ data: { playlistId: id, songId: Number(songId) } });
+  return res.status(201).json(created);
+};
+
+const removeSong = async (req, res) => {
+  const id = Number(req.params.id);
+  const songId = Number(req.params.songId);
+
+  await prisma.playlistSong.delete({ where: { playlistId_songId: { playlistId: id, songId } } });
+  return res.status(204).send();
+};
+
+module.exports = { listPlaylists, createPlaylist, updatePlaylist, deletePlaylist, addSong, removeSong };
