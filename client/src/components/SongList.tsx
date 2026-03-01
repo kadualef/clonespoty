@@ -4,12 +4,11 @@ import { Clock, Play, Heart } from 'lucide-react'
 import usePlayerStore from '@/store/usePlayerStore'
 
 interface Song {
-    id: number;
+    id: string;
     title: string;
     artist: string;
     album?: string;
-    duration: number;
-    url: string;
+    audioUrl: string;
     coverUrl?: string;
 }
 
@@ -26,12 +25,6 @@ export default function SongList({ songs }: SongListProps) {
         } else {
             setSong(song)
         }
-    }
-
-    const formatDuration = (seconds: number) => {
-        const min = Math.floor(seconds / 60)
-        const sec = seconds % 60
-        return `${min}:${sec < 10 ? '0' : ''}${sec}`
     }
 
     return (
@@ -77,7 +70,7 @@ export default function SongList({ songs }: SongListProps) {
                         </div>
                         <div className="flex items-center justify-end gap-x-4">
                             <Heart size={16} className="opacity-0 group-hover:opacity-100 transition hover:text-green-500 cursor-pointer" />
-                            <span className="text-sm">{formatDuration(song.duration)}</span>
+                            <span className="text-sm">--:--</span>
                         </div>
                     </div>
                 ))}
